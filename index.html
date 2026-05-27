@@ -58,7 +58,7 @@
 
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* ── Side Panel (Desktop) ─────────────────────────── */
+        /* ── Panel ─────────────────────────── */
         #side-panel {
             width: var(--panel-w);
             background: var(--surface-1);
@@ -192,112 +192,6 @@
         }
         .xfer-btn:hover { border-color: var(--border-hi); color: var(--text-1); background: var(--surface-3); }
 
-        /* ── Bottom Dock (Desktop only) ────────────────────── */
-        #bottom-dock {
-            position: fixed;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            height: 0;
-            background: var(--surface-1);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            box-shadow: 0 -12px 40px rgba(0,0,0,0.5);
-            overflow-y: auto;
-            transition: height 0.3s ease-out;
-            z-index: 35;
-            display: none;
-        }
-
-        @media (min-width: 768px) {
-            #bottom-dock { display: flex; flex-direction: column; }
-        }
-
-        #dock-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2px;
-            padding: 12px 16px;
-            width: 100%;
-        }
-
-        .dock-tool-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 14px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-2);
-            font-family: var(--font-d);
-            font-size: 11px;
-            font-weight: 500;
-            letter-spacing: 0.03em;
-            cursor: pointer;
-            transition: all 0.12s;
-            white-space: nowrap;
-        }
-        .dock-tool-btn:hover { color: var(--text-1); background: var(--surface-3); border-color: var(--border-hi); }
-        .dock-tool-btn.active {
-            color: var(--accent);
-            background: var(--accent-dim);
-            border-color: var(--accent);
-        }
-        .dock-tool-btn svg { flex-shrink: 0; opacity: 0.65; transition: opacity 0.12s; }
-        .dock-tool-btn:hover svg, .dock-tool-btn.active svg { opacity: 1; }
-
-        .dock-divider {
-            width: 1px;
-            height: 24px;
-            background: var(--border-dim);
-            margin: 0 4px;
-        }
-
-        #dock-trigger-zone {
-            position: fixed;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            height: 60px;
-            z-index: 30;
-            pointer-events: none;
-        }
-
-        /* ── Mobile Picker Button ────────────────────────── */
-        #mobile-picker-btn {
-            display: none;
-            position: fixed;
-            bottom: 35px;
-            right: 14px;
-            width: 50px;
-            height: 50px;
-            background: var(--accent);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            cursor: pointer;
-            z-index: 45;
-            transition: all 0.15s;
-            box-shadow: 0 4px 12px rgba(224,48,64,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @media (max-width: 767px) {
-            #mobile-picker-btn { display: flex !important; }
-            #side-panel { display: none; }
-            #bottom-dock { display: none !important; }
-        }
-
-        #mobile-picker-btn:hover { 
-            background: #c42030;
-            box-shadow: 0 6px 16px rgba(224,48,64,0.5);
-            transform: scale(1.05);
-        }
-
         /* ── Menu button ────────────────────── */
         #menu-btn {
             position: fixed; top: 14px; right: 14px;
@@ -311,10 +205,6 @@
             transition: all 0.12s;
         }
         #menu-btn:hover { color: var(--text-1); border-color: var(--border-hi); background: var(--surface-3); }
-
-        @media (max-width: 767px) {
-            #menu-btn { display: none; }
-        }
 
         /* ── Status bar ─────────────────────── */
         #status-bar {
@@ -524,13 +414,6 @@
         </svg>
     </button>
 
-    <button id="mobile-picker-btn" onclick="toggleMobilePicker()">
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-            <path d="M12 9v6M9 12h6"/>
-        </svg>
-    </button>
-
     <div id="side-panel" class="fixed top-0 right-0 h-full translate-x-full transition-transform duration-300 ease-out z-40 flex flex-col" style="width: var(--panel-w)">
 
         <!-- Header -->
@@ -665,76 +548,6 @@
 
         </div>
     </div>
-
-    <!-- Bottom Dock (Desktop) -->
-    <div id="dock-trigger-zone"></div>
-    <div id="bottom-dock">
-        <div id="dock-content">
-            <button class="dock-tool-btn active" onclick="selectTool('MOVE')" id="dock-btn-MOVE">
-                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4M5 12h14"/>
-                </svg>
-                Move
-            </button>
-
-            <div class="dock-divider"></div>
-
-            <button class="dock-tool-btn" onclick="selectTool('BATTERY')" id="dock-btn-BATTERY">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="5" y="6" width="12" height="12" rx="2"/><path d="M17 10h2v4h-2"/>
-                </svg>
-            </button>
-            <button class="dock-tool-btn" onclick="selectTool('LEVER')" id="dock-btn-LEVER">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="18" r="3"/><path d="M12 15L17 6"/>
-                </svg>
-            </button>
-
-            <div class="dock-divider"></div>
-
-            <button class="dock-tool-btn" onclick="selectTool('DUST')" id="dock-btn-DUST">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="12" cy="12" r="2"/><path d="M4 12h5M15 12h5M12 4v5M12 15v5"/>
-                </svg>
-            </button>
-            <button class="dock-tool-btn" onclick="selectTool('REPEATER')" id="dock-btn-REPEATER">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M8 12l4-5 4 5M4 19h16"/>
-                </svg>
-            </button>
-            <button class="dock-tool-btn" onclick="selectTool('OBSERVER')" id="dock-btn-OBSERVER">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-                </svg>
-            </button>
-
-            <div class="dock-divider"></div>
-
-            <button class="dock-tool-btn" onclick="selectTool('PISTON')" id="dock-btn-PISTON">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="4" y="6" width="6" height="12" rx="1"/><rect x="14" y="8" width="6" height="8" rx="1"/><path d="M10 12h4"/>
-                </svg>
-            </button>
-            <button class="dock-tool-btn" onclick="selectTool('STICKY_PISTON')" id="dock-btn-STICKY_PISTON">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="4" y="6" width="6" height="12" rx="1"/><rect x="14" y="8" width="6" height="8" rx="1"/><path d="M10 12h4M17 11v2"/>
-                </svg>
-            </button>
-            <button class="dock-tool-btn" onclick="selectTool('LAMP')" id="dock-btn-LAMP">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 18h6M10 21h4M12 3a6 6 0 00-6 6c0 2.12.74 4.07 1.97 5.61L9 18h6l1.03-3.39A6 6 0 0012 3z"/>
-                </svg>
-            </button>
-
-            <div class="dock-divider"></div>
-
-            <button class="dock-tool-btn" id="dock-btn-ERASE" onclick="selectTool('ERASE')" style="color: var(--text-3)">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-            </button>
-        </div>
-    </div>
     
     <div id="status-bar">
         <div class="s-item">
@@ -800,8 +613,6 @@
         
         let activeTool = 'MOVE';
         let isPanelOpen = false;
-        let isDockOpen = false;
-        let deviceType = 'PC';
 
         let cameraX = 0;
         let cameraY = 0;
@@ -825,24 +636,13 @@
         let tickRateHz = 10;
         let simulationTimeoutId = null;
 
-        function initApp(type) {
-            deviceType = type;
+        function initApp(deviceType) {
             document.getElementById('launch-screen').style.display = 'none';
-            BASE_CELL_SIZE = (type === 'MOBILE') ? 60 : 40;
+            BASE_CELL_SIZE = (deviceType === 'MOBILE') ? 60 : 40;
             scale = 1.0;
             
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
-
-            // Desktop dock hover detection
-            if (deviceType === 'PC') {
-                document.getElementById('dock-trigger-zone').addEventListener('mouseenter', () => {
-                    openDock();
-                });
-                document.getElementById('bottom-dock').addEventListener('mouseleave', () => {
-                    closeDock();
-                });
-            }
 
             requestAnimationFrame(renderLoop);
             runSimulation();
@@ -883,27 +683,8 @@
             document.getElementById('side-panel').classList.toggle('translate-x-full', !isPanelOpen);
         }
 
-        function toggleMobilePicker() {
-            isPanelOpen = !isPanelOpen;
-            document.getElementById('side-panel').classList.toggle('translate-x-full', !isPanelOpen);
-        }
-
-        function openDock() {
-            if (isDockOpen) return;
-            isDockOpen = true;
-            document.getElementById('bottom-dock').style.height = 'auto';
-        }
-
-        function closeDock() {
-            if (!isDockOpen) return;
-            isDockOpen = false;
-            document.getElementById('bottom-dock').style.height = '0';
-        }
-
         function selectTool(tool) {
             activeTool = tool;
-            
-            // Update side panel buttons
             document.querySelectorAll('.tool-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -913,19 +694,10 @@
                 activeBtn.style.color = '';
             }
 
-            // Update dock buttons
-            document.querySelectorAll('.dock-tool-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            const activeDockBtn = document.getElementById(`dock-btn-${tool}`);
-            if (activeDockBtn) {
-                activeDockBtn.classList.add('active');
-            }
-
             const st = document.getElementById('status-tool');
             if (st) st.textContent = tool.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-            if (deviceType === 'MOBILE' && isPanelOpen) toggleMobilePicker();
+            if (window.innerWidth < 768 && isPanelOpen) toggleMenu();
         }
 
         function showModal(id) { const el = document.getElementById(id); el.style.display = 'flex'; }
@@ -935,7 +707,7 @@
         function confirmClear() {
             grid.clear();
             closeModal('clear-modal');
-            if (isPanelOpen) toggleMobilePicker();
+            if (isPanelOpen) toggleMenu();
         }
 
         function openSaveModal() {
@@ -963,7 +735,7 @@
                 const decoded = decodeURIComponent(atob(document.getElementById('import-text').value.trim()));
                 grid = new Map(JSON.parse(decoded));
                 closeModal('import-modal');
-                if (isPanelOpen) toggleMobilePicker();
+                if (isPanelOpen) toggleMenu();
             } catch (err) {
                 document.getElementById('import-error').style.display = 'block';
             }
@@ -978,7 +750,7 @@
 
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault(); 
-            if (isPanelOpen || isDockOpen) return;
+            if (isPanelOpen) return;
 
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
@@ -1076,7 +848,7 @@
         window.addEventListener('pointercancel', handlePointerUp);
 
         function handleGridTap(canvasX, canvasY) {
-            if (isPanelOpen || isDockOpen) return;
+            if (isPanelOpen) return toggleMenu();
 
             const { wx, wy, key } = getGridPos(canvasX, canvasY);
             const existing = grid.get(key);

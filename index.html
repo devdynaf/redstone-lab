@@ -58,7 +58,7 @@
 
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* ── Panel ─────────────────────────── */
+        /* ── Side Panel (Desktop) ─────────────────────────── */
         #side-panel {
             width: var(--panel-w);
             background: var(--surface-1);
@@ -192,6 +192,112 @@
         }
         .xfer-btn:hover { border-color: var(--border-hi); color: var(--text-1); background: var(--surface-3); }
 
+        /* ── Bottom Dock (Desktop only) ────────────────────── */
+        #bottom-dock {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            height: 0;
+            background: var(--surface-1);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 -12px 40px rgba(0,0,0,0.5);
+            overflow-y: auto;
+            transition: height 0.3s ease-out;
+            z-index: 35;
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            #bottom-dock { display: flex; flex-direction: column; }
+        }
+
+        #dock-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            padding: 12px 16px;
+            width: 100%;
+        }
+
+        .dock-tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-2);
+            font-family: var(--font-d);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            cursor: pointer;
+            transition: all 0.12s;
+            white-space: nowrap;
+        }
+        .dock-tool-btn:hover { color: var(--text-1); background: var(--surface-3); border-color: var(--border-hi); }
+        .dock-tool-btn.active {
+            color: var(--accent);
+            background: var(--accent-dim);
+            border-color: var(--accent);
+        }
+        .dock-tool-btn svg { flex-shrink: 0; opacity: 0.65; transition: opacity 0.12s; }
+        .dock-tool-btn:hover svg, .dock-tool-btn.active svg { opacity: 1; }
+
+        .dock-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-dim);
+            margin: 0 4px;
+        }
+
+        #dock-trigger-zone {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        /* ── Mobile Picker Button ────────────────────────── */
+        #mobile-picker-btn {
+            display: none;
+            position: fixed;
+            bottom: 35px;
+            right: 14px;
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            z-index: 45;
+            transition: all 0.15s;
+            box-shadow: 0 4px 12px rgba(224,48,64,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 767px) {
+            #mobile-picker-btn { display: flex !important; }
+            #side-panel { display: none; }
+            #bottom-dock { display: none !important; }
+        }
+
+        #mobile-picker-btn:hover { 
+            background: #c42030;
+            box-shadow: 0 6px 16px rgba(224,48,64,0.5);
+            transform: scale(1.05);
+        }
+
         /* ── Menu button ────────────────────── */
         #menu-btn {
             position: fixed; top: 14px; right: 14px;
@@ -205,6 +311,10 @@
             transition: all 0.12s;
         }
         #menu-btn:hover { color: var(--text-1); border-color: var(--border-hi); background: var(--surface-3); }
+
+        @media (max-width: 767px) {
+            #menu-btn { display: none; }
+        }
 
         /* ── Status bar ─────────────────────── */
         #status-bar {
@@ -414,6 +524,13 @@
         </svg>
     </button>
 
+    <button id="mobile-picker-btn" onclick="toggleMobilePicker()">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+            <path d="M12 9v6M9 12h6"/>
+        </svg>
+    </button>
+
     <div id="side-panel" class="fixed top-0 right-0 h-full translate-x-full transition-transform duration-300 ease-out z-40 flex flex-col" style="width: var(--panel-w)">
 
         <!-- Header -->
@@ -548,6 +665,76 @@
 
         </div>
     </div>
+
+    <!-- Bottom Dock (Desktop) -->
+    <div id="dock-trigger-zone"></div>
+    <div id="bottom-dock">
+        <div id="dock-content">
+            <button class="dock-tool-btn active" onclick="selectTool('MOVE')" id="dock-btn-MOVE">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4M5 12h14"/>
+                </svg>
+                Move
+            </button>
+
+            <div class="dock-divider"></div>
+
+            <button class="dock-tool-btn" onclick="selectTool('BATTERY')" id="dock-btn-BATTERY">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="5" y="6" width="12" height="12" rx="2"/><path d="M17 10h2v4h-2"/>
+                </svg>
+            </button>
+            <button class="dock-tool-btn" onclick="selectTool('LEVER')" id="dock-btn-LEVER">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="18" r="3"/><path d="M12 15L17 6"/>
+                </svg>
+            </button>
+
+            <div class="dock-divider"></div>
+
+            <button class="dock-tool-btn" onclick="selectTool('DUST')" id="dock-btn-DUST">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="2"/><path d="M4 12h5M15 12h5M12 4v5M12 15v5"/>
+                </svg>
+            </button>
+            <button class="dock-tool-btn" onclick="selectTool('REPEATER')" id="dock-btn-REPEATER">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M8 12l4-5 4 5M4 19h16"/>
+                </svg>
+            </button>
+            <button class="dock-tool-btn" onclick="selectTool('OBSERVER')" id="dock-btn-OBSERVER">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                </svg>
+            </button>
+
+            <div class="dock-divider"></div>
+
+            <button class="dock-tool-btn" onclick="selectTool('PISTON')" id="dock-btn-PISTON">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="6" width="6" height="12" rx="1"/><rect x="14" y="8" width="6" height="8" rx="1"/><path d="M10 12h4"/>
+                </svg>
+            </button>
+            <button class="dock-tool-btn" onclick="selectTool('STICKY_PISTON')" id="dock-btn-STICKY_PISTON">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="6" width="6" height="12" rx="1"/><rect x="14" y="8" width="6" height="8" rx="1"/><path d="M10 12h4M17 11v2"/>
+                </svg>
+            </button>
+            <button class="dock-tool-btn" onclick="selectTool('LAMP')" id="dock-btn-LAMP">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18h6M10 21h4M12 3a6 6 0 00-6 6c0 2.12.74 4.07 1.97 5.61L9 18h6l1.03-3.39A6 6 0 0012 3z"/>
+                </svg>
+            </button>
+
+            <div class="dock-divider"></div>
+
+            <button class="dock-tool-btn" id="dock-btn-ERASE" onclick="selectTool('ERASE')" style="color: var(--text-3)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
     
     <div id="status-bar">
         <div class="s-item">
@@ -613,6 +800,8 @@
         
         let activeTool = 'MOVE';
         let isPanelOpen = false;
+        let isDockOpen = false;
+        let deviceType = 'PC';
 
         let cameraX = 0;
         let cameraY = 0;
@@ -636,13 +825,24 @@
         let tickRateHz = 10;
         let simulationTimeoutId = null;
 
-        function initApp(deviceType) {
+        function initApp(type) {
+            deviceType = type;
             document.getElementById('launch-screen').style.display = 'none';
-            BASE_CELL_SIZE = (deviceType === 'MOBILE') ? 60 : 40;
+            BASE_CELL_SIZE = (type === 'MOBILE') ? 60 : 40;
             scale = 1.0;
             
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
+
+            // Desktop dock hover detection
+            if (deviceType === 'PC') {
+                document.getElementById('dock-trigger-zone').addEventListener('mouseenter', () => {
+                    openDock();
+                });
+                document.getElementById('bottom-dock').addEventListener('mouseleave', () => {
+                    closeDock();
+                });
+            }
 
             requestAnimationFrame(renderLoop);
             runSimulation();
@@ -683,8 +883,27 @@
             document.getElementById('side-panel').classList.toggle('translate-x-full', !isPanelOpen);
         }
 
+        function toggleMobilePicker() {
+            isPanelOpen = !isPanelOpen;
+            document.getElementById('side-panel').classList.toggle('translate-x-full', !isPanelOpen);
+        }
+
+        function openDock() {
+            if (isDockOpen) return;
+            isDockOpen = true;
+            document.getElementById('bottom-dock').style.height = 'auto';
+        }
+
+        function closeDock() {
+            if (!isDockOpen) return;
+            isDockOpen = false;
+            document.getElementById('bottom-dock').style.height = '0';
+        }
+
         function selectTool(tool) {
             activeTool = tool;
+            
+            // Update side panel buttons
             document.querySelectorAll('.tool-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -694,10 +913,19 @@
                 activeBtn.style.color = '';
             }
 
+            // Update dock buttons
+            document.querySelectorAll('.dock-tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeDockBtn = document.getElementById(`dock-btn-${tool}`);
+            if (activeDockBtn) {
+                activeDockBtn.classList.add('active');
+            }
+
             const st = document.getElementById('status-tool');
             if (st) st.textContent = tool.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-            if (window.innerWidth < 768 && isPanelOpen) toggleMenu();
+            if (deviceType === 'MOBILE' && isPanelOpen) toggleMobilePicker();
         }
 
         function showModal(id) { const el = document.getElementById(id); el.style.display = 'flex'; }
@@ -707,7 +935,7 @@
         function confirmClear() {
             grid.clear();
             closeModal('clear-modal');
-            if (isPanelOpen) toggleMenu();
+            if (isPanelOpen) toggleMobilePicker();
         }
 
         function openSaveModal() {
@@ -735,7 +963,7 @@
                 const decoded = decodeURIComponent(atob(document.getElementById('import-text').value.trim()));
                 grid = new Map(JSON.parse(decoded));
                 closeModal('import-modal');
-                if (isPanelOpen) toggleMenu();
+                if (isPanelOpen) toggleMobilePicker();
             } catch (err) {
                 document.getElementById('import-error').style.display = 'block';
             }
@@ -750,7 +978,7 @@
 
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault(); 
-            if (isPanelOpen) return;
+            if (isPanelOpen || isDockOpen) return;
 
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
@@ -848,7 +1076,7 @@
         window.addEventListener('pointercancel', handlePointerUp);
 
         function handleGridTap(canvasX, canvasY) {
-            if (isPanelOpen) return toggleMenu();
+            if (isPanelOpen || isDockOpen) return;
 
             const { wx, wy, key } = getGridPos(canvasX, canvasY);
             const existing = grid.get(key);
@@ -1000,345 +1228,152 @@
                     }
                     cell.nextState = isPowered;
                 }
-                
                 else if (cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
+                    const bCell = grid.get(`${x - DX[cell.dir]},${y - DY[cell.dir]}`);
                     let isPowered = false;
-                    for (let i = 0; i < 4; i++) {
-                        if (i === cell.dir) continue;
-
-                        const adj = grid.get(`${x + DX[i]},${y + DY[i]}`);
-                        if (adj) {
-                            if (adj.type === 'BATTERY' || (adj.type === 'LEVER' && adj.active) || (adj.type === 'DUST' && adj.power > 0)) isPowered = true;
-                            if (adj.type === 'REPEATER' && adj.active && adj.dir === (i + 2) % 4) isPowered = true;
-                        }
+                    if (bCell) {
+                        if (bCell.type === 'BATTERY' || (bCell.type === 'LEVER' && bCell.active) || (bCell.type === 'DUST' && bCell.power > 0)) isPowered = true;
+                        if (bCell.type === 'REPEATER' && bCell.active && bCell.dir === cell.dir) isPowered = true;
                     }
                     cell.nextState = isPowered;
                 }
-
                 else if (cell.type === 'OBSERVER') {
-                    const frontState = getCellState(x + DX[cell.dir], y + DY[cell.dir]);
-                    if (cell.lastFrontState !== null && cell.lastFrontState !== frontState) {
+                    const prevState = getCellState(x + DX[cell.dir], y + DY[cell.dir]);
+                    if (cell.lastFrontState !== null && cell.lastFrontState !== prevState) {
+                        cell.pulseTimer = 1;
                         cell.pulseQueued = true;
                     }
-                    cell.lastFrontState = frontState;
+                    cell.lastFrontState = prevState;
                 }
             });
 
-            let pistonsToExtend = [];
-            let pistonsToRetract = [];
-
-            grid.forEach((cell, key) => {
-                if (cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
-                    if (!cell.active && cell.nextState) pistonsToExtend.push({key, cell});
-                    if (cell.active && !cell.nextState) pistonsToRetract.push({key, cell});
-                }
-                if (cell.type === 'REPEATER') cell.active = cell.nextState;
-
-                if (cell.type === 'OBSERVER') {
-                    if (cell.pulseQueued) {
-                        cell.pulseTimer = 2; 
-                        cell.pulseQueued = false;
-                    } else if (cell.pulseTimer > 0) {
-                        cell.pulseTimer--;
+            grid.forEach((cell) => {
+                if (cell.type === 'REPEATER' || cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
+                    if (cell.nextState && !cell.active) {
+                        cell.active = true;
+                    } else if (!cell.nextState && cell.active) {
+                        cell.active = false;
                     }
                 }
-            });
-
-            pistonsToRetract.forEach(p => {
-                const [x, y] = p.key.split(',').map(Number);
-                const headKey = `${x + DX[p.cell.dir]},${y + DY[p.cell.dir]}`;
-                const headCell = grid.get(headKey);
-                if (headCell && headCell.type === 'PISTON_HEAD') grid.delete(headKey);
-                
-                if (p.cell.type === 'STICKY_PISTON') {
-                    const blockX = x + 2 * DX[p.cell.dir];
-                    const blockY = y + 2 * DY[p.cell.dir];
-                    const pullKey = `${blockX},${blockY}`;
-                    const targetBlock = grid.get(pullKey);
-
-                    if (targetBlock) {
-                        const movable = targetBlock.type !== 'PISTON_HEAD' && 
-                                        !((targetBlock.type === 'PISTON' || targetBlock.type === 'STICKY_PISTON') && targetBlock.active);
-                        if (movable) {
-                            grid.set(headKey, targetBlock);
-                            grid.delete(pullKey);
+                if (cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
+                    if (cell.active) {
+                        const key = `${cell.x},${cell.y}`;
+                        const headKey = `${cell.x + DX[cell.dir]},${cell.y + DY[cell.dir]}`;
+                        if (!grid.has(headKey)) {
+                            attemptPush(cell.x, cell.y, cell.dir);
                         }
                     }
                 }
-                p.cell.active = false;
-            });
-
-            pistonsToExtend.forEach(p => {
-                const [x, y] = p.key.split(',').map(Number);
-                const canExtend = attemptPush(x, y, p.cell.dir);
-                if (canExtend) {
-                    grid.set(`${x + DX[p.cell.dir]},${y + DY[p.cell.dir]}`, { 
-                        type: 'PISTON_HEAD', 
-                        dir: p.cell.dir, 
-                        parent: p.key 
-                    });
-                    p.cell.active = true;
+                if (cell.type === 'OBSERVER') {
+                    if (cell.pulseQueued) {
+                        cell.pulseTimer--;
+                        if (cell.pulseTimer <= 0) cell.pulseQueued = false;
+                    }
                 }
             });
+        }
+
+        function drawCell(x, y, size, cell) {
+            const drawX = x * size;
+            const drawY = y * size;
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(drawX, drawY, size, size);
+            ctx.strokeStyle = 'rgba(34, 34, 56, 0.5)';
+            ctx.lineWidth = 0.5;
+            ctx.strokeRect(drawX, drawY, size, size);
+
+            if (!cell) return;
+
+            const padding = size * 0.1;
+            const innerSize = size - padding * 2;
+            const innerX = drawX + padding;
+            const innerY = drawY + padding;
+
+            if (cell.type === 'BATTERY') {
+                ctx.fillStyle = '#ff6b35';
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+            } else if (cell.type === 'LEVER') {
+                ctx.fillStyle = cell.active ? '#00d084' : '#888899';
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+                if (cell.active) {
+                    ctx.fillStyle = '#00ff99';
+                    ctx.fillRect(innerX + innerSize * 0.25, innerY + innerSize * 0.1, innerSize * 0.5, innerSize * 0.3);
+                }
+            } else if (cell.type === 'DUST') {
+                const intensity = cell.power / 15;
+                ctx.fillStyle = `rgba(255, 165, 0, ${0.3 + intensity * 0.7})`;
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+            } else if (cell.type === 'LAMP') {
+                const intensity = cell.power / 15;
+                ctx.fillStyle = `rgba(255, 200, 100, ${0.2 + intensity * 0.8})`;
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+                if (cell.power > 0) {
+                    ctx.fillStyle = `rgba(255, 255, 100, ${intensity * 0.5})`;
+                    ctx.fillRect(innerX - padding, innerY - padding, size, size);
+                }
+            } else if (cell.type === 'REPEATER') {
+                ctx.fillStyle = cell.active ? '#ff3333' : '#993333';
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+                const arrowX = innerX + innerSize / 2;
+                const arrowY = innerY + innerSize / 2;
+                const arrowLen = innerSize * 0.3;
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(arrowX - arrowLen * Math.cos(Math.PI / 2 + cell.dir * Math.PI / 2), arrowY - arrowLen * Math.sin(Math.PI / 2 + cell.dir * Math.PI / 2));
+                ctx.lineTo(arrowX, arrowY);
+                ctx.stroke();
+            } else if (cell.type === 'OBSERVER') {
+                ctx.fillStyle = '#7733ff';
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+                const arrowX = innerX + innerSize / 2;
+                const arrowY = innerY + innerSize / 2;
+                const arrowLen = innerSize * 0.3;
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(arrowX - arrowLen * Math.cos(Math.PI / 2 + cell.dir * Math.PI / 2), arrowY - arrowLen * Math.sin(Math.PI / 2 + cell.dir * Math.PI / 2));
+                ctx.lineTo(arrowX, arrowY);
+                ctx.stroke();
+            } else if (cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
+                ctx.fillStyle = cell.active ? '#ffaa00' : '#cc8800';
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+                if (cell.type === 'STICKY_PISTON') {
+                    ctx.fillStyle = '#ff6699';
+                    ctx.fillRect(innerX, innerY, innerSize * 0.2, innerSize * 0.2);
+                }
+            } else if (cell.type === 'PISTON_HEAD') {
+                ctx.fillStyle = '#aaaaaa';
+                ctx.fillRect(innerX, innerY, innerSize, innerSize);
+            }
         }
 
         function renderLoop() {
-            const cellSize = BASE_CELL_SIZE * scale;
+            const currentCellSize = BASE_CELL_SIZE * scale;
+            const rect = canvas.getBoundingClientRect();
+            ctx.fillStyle = 'var(--bg)';
+            ctx.fillRect(0, 0, rect.width, rect.height);
 
-            ctx.fillStyle = '#07070e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const startX = Math.floor((0 - cameraX) / currentCellSize);
+            const startY = Math.floor((0 - cameraY) / currentCellSize);
+            const endX = Math.ceil((rect.width - cameraX) / currentCellSize);
+            const endY = Math.ceil((rect.height - cameraY) / currentCellSize);
 
-            // Grid lines
-            ctx.strokeStyle = '#14142a';
-            ctx.lineWidth = 1;
-            
-            const startX = Math.floor(-cameraX / cellSize);
-            const endX = startX + Math.ceil(canvas.width / cellSize) + 1;
-            for (let x = startX; x <= endX; x++) {
-                const px = x * cellSize + cameraX;
-                ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, canvas.height); ctx.stroke();
+            for (let x = startX; x < endX; x++) {
+                for (let y = startY; y < endY; y++) {
+                    const screenX = cameraX + x * currentCellSize;
+                    const screenY = cameraY + y * currentCellSize;
+                    const key = `${x},${y}`;
+                    const cell = grid.get(key);
+                    ctx.save();
+                    ctx.translate(screenX, screenY);
+                    drawCell(0, 0, currentCellSize, cell);
+                    ctx.restore();
+                }
             }
-
-            const startY = Math.floor(-cameraY / cellSize);
-            const endY = startY + Math.ceil(canvas.height / cellSize) + 1;
-            for (let y = startY; y <= endY; y++) {
-                const py = y * cellSize + cameraY;
-                ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(canvas.width, py); ctx.stroke();
-            }
-
-            grid.forEach((cell, key) => {
-                const [wx, wy] = key.split(',').map(Number);
-                const px = wx * cellSize + cameraX;
-                const py = wy * cellSize + cameraY;
-
-                if (px < -cellSize || py < -cellSize || px > (canvas.width / (window.devicePixelRatio || 1)) || py > (canvas.height / (window.devicePixelRatio || 1))) return;
-
-                const pad = cellSize * 0.15;
-
-                if (cell.type === 'BATTERY') {
-                    // Constant Generator Core Block
-                    ctx.fillStyle = '#064e3b';
-                    ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    ctx.strokeStyle = '#059669';
-                    ctx.lineWidth = 1.5 * scale;
-                    ctx.strokeRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    
-                    ctx.fillStyle = '#34d399';
-                    ctx.fillRect(px + cellSize/2 - 1.5*scale, py + pad + 6*scale, 3*scale, cellSize - pad*2 - 12*scale);
-                    ctx.fillRect(px + pad + 6*scale, py + cellSize/2 - 1.5*scale, cellSize - pad*2 - 12*scale, 3*scale);
-                } 
-                else if (cell.type === 'LEVER') {
-                    // Standard Lever Switch
-                    ctx.fillStyle = '#27272a';
-                    ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    ctx.strokeStyle = '#3f3f46';
-                    ctx.lineWidth = 1 * scale;
-                    ctx.strokeRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-
-                    ctx.save();
-                    ctx.translate(px + cellSize/2, py + cellSize/2);
-                    ctx.fillStyle = '#52525b';
-                    ctx.fillRect(-cellSize*0.08, -cellSize*0.08, cellSize*0.16, cellSize*0.16);
-
-                    ctx.lineWidth = 3 * scale;
-                    ctx.strokeStyle = '#d4d4d8';
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    if (cell.active) ctx.lineTo(cellSize * 0.25, -cellSize * 0.2); 
-                    else ctx.lineTo(-cellSize * 0.25, cellSize * 0.2); 
-                    ctx.stroke();
-
-                    ctx.fillStyle = cell.active ? '#10b981' : '#f43f5e';
-                    ctx.beginPath();
-                    ctx.arc(cell.active ? cellSize * 0.25 : -cellSize * 0.25, cell.active ? -cellSize * 0.2 : cellSize * 0.2, 3.5 * scale, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
-                }
-                else if (cell.type === 'LAMP') {
-                    // Light Indicator
-                    let isPowered = cell.power > 0;
-                    ctx.fillStyle = isPowered ? '#78350f' : '#1c1917';
-                    ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    ctx.strokeStyle = isPowered ? '#fbbf24' : '#44403c';
-                    ctx.lineWidth = 1.5 * scale;
-                    ctx.strokeRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-
-                    ctx.strokeStyle = isPowered ? '#fcd34d' : '#292524';
-                    ctx.lineWidth = 1 * scale;
-                    ctx.beginPath();
-                    ctx.moveTo(px + pad + 4*scale, py + pad + 4*scale);
-                    ctx.lineTo(px + cellSize - pad - 4*scale, py + cellSize - pad - 4*scale);
-                    ctx.moveTo(px + cellSize - pad - 4*scale, py + pad + 4*scale);
-                    ctx.lineTo(px + pad + 4*scale, py + cellSize - pad - 4*scale);
-                    ctx.stroke();
-
-                    if (isPowered) {
-                        ctx.shadowBlur = 15 * scale;
-                        ctx.shadowColor = '#d97706';
-                        ctx.fillStyle = 'rgba(251, 191, 36, 0.2)';
-                        ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                        ctx.shadowBlur = 0;
-                    }
-                }
-                else if (cell.type === 'DUST') {
-                    // Redstone Conductor Wires
-                    let isPowered = cell.power > 0;
-                    let intensity = isPowered ? Math.floor(110 + (cell.power / 15) * 145) : 35;
-                    ctx.fillStyle = `rgb(${intensity}, 0, 0)`;
-                    ctx.strokeStyle = `rgb(${intensity}, 0, 0)`;
-                    
-                    let dotSize = cellSize * 0.35;
-                    let offset = (cellSize - dotSize) / 2;
-                    
-                    ctx.fillRect(px + offset, py + offset, dotSize, dotSize);
-                    
-                    ctx.lineWidth = dotSize * 0.7;
-                    ctx.lineCap = 'round';
-                    ctx.beginPath();
-                    
-                    for (let i = 0; i < 4; i++) {
-                        let nx = wx + DX[i], ny = wy + DY[i];
-                        let nCell = grid.get(`${nx},${ny}`);
-                        
-                        let shouldConnect = false;
-                        if (nCell) {
-                            if (['DUST', 'BATTERY', 'LEVER', 'LAMP'].includes(nCell.type)) {
-                                shouldConnect = true;
-                            } else if (nCell.type === 'PISTON' || nCell.type === 'STICKY_PISTON') {
-                                if (nCell.dir !== (i + 2) % 4) shouldConnect = true;
-                            } else if (nCell.type === 'OBSERVER') {
-                                shouldConnect = true; 
-                            } else if (nCell.type === 'REPEATER' && nCell.dir % 2 === i % 2) {
-                                shouldConnect = true;
-                            }
-                        }
-
-                        if (shouldConnect) {
-                            ctx.moveTo(px + cellSize/2, py + cellSize/2);
-                            ctx.lineTo(px + cellSize/2 + DX[i]*(cellSize/2 + 1.5*scale), py + cellSize/2 + DY[i]*(cellSize/2 + 1.5*scale));
-                        }
-                    }
-                    ctx.stroke();
-
-                    if (isPowered) {
-                        ctx.shadowBlur = 10 * scale;
-                        ctx.shadowColor = 'rgba(239, 68, 68, 0.8)';
-                        ctx.fillStyle = '#fca5a5';
-                        ctx.beginPath();
-                        ctx.arc(px + cellSize/2, py + cellSize/2, dotSize/4, 0, Math.PI*2);
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-                    }
-                }
-                else if (cell.type === 'REPEATER') {
-                    // Directional Repeater Module
-                    ctx.fillStyle = '#27272a';
-                    ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    ctx.strokeStyle = '#3f3f46';
-                    ctx.lineWidth = 1 * scale;
-                    ctx.strokeRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    
-                    ctx.save();
-                    ctx.translate(px + cellSize/2, py + cellSize/2);
-                    ctx.rotate(cell.dir * Math.PI / 2);
-                    
-                    ctx.fillStyle = cell.active ? '#ef4444' : '#7f1d1d';
-                    if (cell.active) {
-                        ctx.shadowBlur = 6 * scale;
-                        ctx.shadowColor = '#ef4444';
-                    }
-                    ctx.beginPath();
-                    ctx.moveTo(0, -cellSize*0.3); 
-                    ctx.lineTo(cellSize*0.2, cellSize*0.18); 
-                    ctx.lineTo(-cellSize*0.2, cellSize*0.18); 
-                    ctx.closePath();
-                    ctx.fill();
-                    ctx.restore();
-                }
-                else if (cell.type === 'OBSERVER') {
-                    // CAD Lens System (Observer Block)
-                    ctx.fillStyle = '#1e293b';
-                    ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-                    ctx.strokeStyle = '#334155';
-                    ctx.lineWidth = 1 * scale;
-                    ctx.strokeRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-
-                    ctx.save();
-                    ctx.translate(px + cellSize/2, py + cellSize/2);
-                    ctx.rotate(cell.dir * Math.PI / 2);
-
-                    // Dual sensors (Observation Side)
-                    ctx.fillStyle = '#475569';
-                    ctx.fillRect(-cellSize*0.15, -cellSize/2 + pad, cellSize*0.1, cellSize*0.1);
-                    ctx.fillRect(cellSize*0.05, -cellSize/2 + pad, cellSize*0.1, cellSize*0.1);
-
-                    // Redstone Signal Output dot (Back Side)
-                    ctx.fillStyle = cell.pulseTimer > 0 ? '#ef4444' : '#450a0a';
-                    if (cell.pulseTimer > 0) {
-                        ctx.shadowBlur = 6 * scale;
-                        ctx.shadowColor = '#ef4444';
-                    }
-                    ctx.beginPath();
-                    ctx.arc(0, cellSize/2 - pad - cellSize*0.08, cellSize*0.09, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.restore();
-                }
-                else if (cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
-                    // Standard Mechanical Piston Bases
-                    ctx.fillStyle = '#3f3f46'; 
-                    ctx.fillRect(px + pad, py + pad, cellSize - pad*2, cellSize - pad*2);
-
-                    ctx.save();
-                    ctx.translate(px + cellSize/2, py + cellSize/2);
-                    ctx.rotate(cell.dir * Math.PI / 2);
-
-                    if (!cell.active) {
-                        // Wooden head coverplate
-                        ctx.fillStyle = '#78350f';
-                        ctx.fillRect(-cellSize/2 + pad, -cellSize/2 + pad, cellSize - pad*2, cellSize*0.18);
-                        
-                        if (cell.type === 'STICKY_PISTON') {
-                            // Professional green adhesive band
-                            ctx.fillStyle = '#10b981';
-                            ctx.fillRect(-cellSize/3, -cellSize/2 + pad + cellSize*0.03, cellSize*(2/3), cellSize*0.1);
-                        }
-                    } else {
-                        // Extension Shaft
-                        ctx.fillStyle = '#71717a';
-                        ctx.fillRect(-cellSize*0.08, -cellSize/2, cellSize*0.16, cellSize/2 - pad);
-                    }
-                    ctx.restore();
-                }
-                else if (cell.type === 'PISTON_HEAD') {
-                    // Mechanical Extension Head block
-                    const parentCell = grid.get(cell.parent);
-                    const isSticky = parentCell && parentCell.type === 'STICKY_PISTON';
-
-                    ctx.save();
-                    ctx.translate(px + cellSize/2, py + cellSize/2);
-                    ctx.rotate(cell.dir * Math.PI / 2);
-
-                    // Coverplate Wood panel
-                    ctx.fillStyle = '#78350f';
-                    ctx.fillRect(-cellSize/2 + pad, -cellSize/2 + pad, cellSize - pad*2, cellSize*0.22);
-
-                    if (isSticky) {
-                        // Sticky dynamic bands
-                        ctx.fillStyle = '#10b981';
-                        ctx.fillRect(-cellSize/3, -cellSize/2 + pad + cellSize*0.04, cellSize*(2/3), cellSize*0.12);
-                    }
-
-                    // Metal Core rod
-                    ctx.fillStyle = '#71717a';
-                    ctx.fillRect(-cellSize*0.08, -cellSize/2 + pad + cellSize*0.22, cellSize*0.16, cellSize/2 - pad);
-                    ctx.restore();
-                }
-            });
 
             requestAnimationFrame(renderLoop);
         }
-
     </script>
 </body>
 </html>

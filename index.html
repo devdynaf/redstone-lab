@@ -180,6 +180,127 @@
         .tool-btn svg { flex-shrink: 0; opacity: 0.65; transition: opacity 0.12s; }
         .tool-btn:hover svg, .tool-btn.active svg { opacity: 1; }
 
+        #back-btn {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            z-index: 55;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-2);
+            transition: color 0.12s, border-color 0.12s, background 0.12s;
+        }
+        #back-btn:hover { color: var(--text-1); border-color: var(--border-hi); background: var(--surface-3); }
+
+        #dock-hit-area {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 96px;
+            z-index: 58;
+            display: none;
+        }
+
+        #tool-dock {
+            position: fixed;
+            left: 50%;
+            bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 60;
+            display: none;
+            align-items: center;
+            gap: 7px;
+            max-width: min(940px, calc(100vw - 28px));
+            padding: 8px;
+            background: rgba(13, 13, 26, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.58), 0 0 0 1px rgba(255,255,255,0.025) inset;
+            backdrop-filter: blur(14px);
+            transform: translate(-50%, calc(100% + 18px));
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        #dock-hit-area:hover + #tool-dock,
+        #tool-dock:hover,
+        #tool-dock.dock-open {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .dock-tool,
+        .dock-action {
+            width: 54px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: transform 0.12s, border-color 0.12s, background 0.12s, color 0.12s;
+        }
+        .dock-tool:hover,
+        .dock-action:hover {
+            transform: translateY(-6px);
+            border-color: var(--border-hi);
+            background: var(--surface-3);
+            color: var(--text-1);
+        }
+        .dock-tool.active {
+            color: var(--accent);
+            border-color: rgba(224,48,64,0.55);
+            background: var(--accent-dim);
+            box-shadow: 0 0 20px var(--accent-dim);
+        }
+        .dock-separator {
+            width: 1px;
+            height: 38px;
+            background: var(--border-dim);
+            margin: 0 2px;
+        }
+        .mc-icon {
+            width: 30px;
+            height: 30px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 2px 0 rgba(0,0,0,0.35));
+        }
+        .dock-action svg { opacity: 0.82; }
+
+        #hover-label {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 500;
+            display: none;
+            pointer-events: none;
+            padding: 6px 9px;
+            min-width: 54px;
+            text-align: center;
+            background: rgba(13, 13, 26, 0.94);
+            border: 1px solid var(--border-hi);
+            border-radius: 7px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+            color: var(--text-1);
+            font-family: var(--font-m);
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            transform: translate(-50%, calc(-100% - 12px));
+        }
+        #hover-label.visible { display: block; }
+
         .p-divider {
             height: 1px;
             background: var(--border-dim);
@@ -414,6 +535,17 @@
             padding-left: env(safe-area-inset-left, 0px);
             padding-right: env(safe-area-inset-right, 0px);
         }
+
+        body[data-device="PC"] #side-panel,
+        body[data-device="PC"] #menu-btn { display: none; }
+        body[data-device="PC"] #tool-dock,
+        body[data-device="PC"] #dock-hit-area { display: flex; }
+        body[data-device="PC"] #status-bar { bottom: 0; }
+
+        @media (max-width: 767px), (pointer: coarse) {
+            body[data-device="MOBILE"] #tool-dock,
+            body[data-device="MOBILE"] #dock-hit-area { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -449,7 +581,13 @@
         </div>
     </div>
 
-    <button id="menu-btn" onclick="toggleMenu()">
+    <a id="back-btn" href="https://devdynaf.github.io" aria-label="Back to devdynaf.github.io" title="Back to devdynaf.github.io">
+        <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/>
+        </svg>
+    </a>
+
+    <button id="menu-btn" onclick="toggleMenu()" aria-label="Open tools">
         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
         </svg>
@@ -589,6 +727,39 @@
 
         </div>
     </div>
+
+    <div id="dock-hit-area" aria-hidden="true"></div>
+    <nav id="tool-dock" aria-label="Block dock">
+        <button class="dock-tool active" id="dock-MOVE" onclick="selectTool('MOVE')" title="Pan & Move" aria-label="Pan and move"></button>
+        <span class="dock-separator"></span>
+        <button class="dock-tool" id="dock-BATTERY" onclick="selectTool('BATTERY')" title="Generator" aria-label="Generator"></button>
+        <button class="dock-tool" id="dock-LEVER" onclick="selectTool('LEVER')" title="Switch" aria-label="Switch"></button>
+        <button class="dock-tool" id="dock-DUST" onclick="selectTool('DUST')" title="Conductor" aria-label="Conductor"></button>
+        <button class="dock-tool" id="dock-REPEATER" onclick="selectTool('REPEATER')" title="Repeater" aria-label="Repeater"></button>
+        <button class="dock-tool" id="dock-OBSERVER" onclick="selectTool('OBSERVER')" title="Observer" aria-label="Observer"></button>
+        <button class="dock-tool" id="dock-PISTON" onclick="selectTool('PISTON')" title="Piston" aria-label="Piston"></button>
+        <button class="dock-tool" id="dock-STICKY_PISTON" onclick="selectTool('STICKY_PISTON')" title="Sticky Piston" aria-label="Sticky piston"></button>
+        <button class="dock-tool" id="dock-LAMP" onclick="selectTool('LAMP')" title="Lamp" aria-label="Lamp"></button>
+        <span class="dock-separator"></span>
+        <button class="dock-tool" id="dock-ERASE" onclick="selectTool('ERASE')" title="Eraser" aria-label="Eraser"></button>
+        <button class="dock-action" onclick="openClearModal()" title="Clear Grid" aria-label="Clear grid">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7L5 21M5 7l14 14"/>
+            </svg>
+        </button>
+        <button class="dock-action" onclick="openSaveModal()" title="Export" aria-label="Export">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>
+            </svg>
+        </button>
+        <button class="dock-action" onclick="openLoadModal()" title="Import" aria-label="Import">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 16V4m0 12l4-4m-4 4l-4-4"/>
+            </svg>
+        </button>
+    </nav>
+
+    <div id="hover-label" role="status" aria-live="polite"></div>
     
     <div id="status-bar">
         <div class="s-item">
@@ -654,6 +825,8 @@
         
         let activeTool = 'MOVE';
         let isPanelOpen = false;
+        let currentDevice = 'PC';
+        let appStarted = false;
 
         let cameraX = 0;
         let cameraY = 0;
@@ -674,19 +847,64 @@
         const DX = [0, 1, 0, -1];
         const DY = [-1, 0, 1, 0];
 
+        const BLOCK_LABELS = {
+            MOVE: 'Pan & Move',
+            BATTERY: 'Generator',
+            LEVER: 'Switch',
+            DUST: 'Conductor',
+            REPEATER: 'Repeater',
+            OBSERVER: 'Observer',
+            PISTON: 'Piston',
+            STICKY_PISTON: 'Sticky Piston',
+            PISTON_HEAD: 'Piston Head',
+            LAMP: 'Lamp',
+            ERASE: 'Eraser'
+        };
+
         let tickRateHz = 10;
         let simulationTimeoutId = null;
 
-        function initApp(deviceType) {
-            document.getElementById('launch-screen').style.display = 'none';
+        function detectDeviceType() {
+            const smallScreen = Math.min(window.innerWidth, window.innerHeight) < 760;
+            const coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+            const canHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
+            const touchOnly = coarsePointer && !finePointer && !canHover;
+            return (touchOnly || (smallScreen && coarsePointer && !canHover)) ? 'MOBILE' : 'PC';
+        }
+
+        function setDeviceMode(deviceType) {
+            currentDevice = deviceType;
+            document.body.dataset.device = deviceType;
             BASE_CELL_SIZE = (deviceType === 'MOBILE') ? 60 : 40;
+            if (deviceType === 'PC' && isPanelOpen) toggleMenu();
+        }
+
+        function initApp(deviceType = detectDeviceType()) {
+            if (appStarted) {
+                setDeviceMode(deviceType);
+                resizeCanvas();
+                return;
+            }
+
+            appStarted = true;
+            setDeviceMode(deviceType);
+            document.getElementById('launch-screen').style.display = 'none';
             scale = 1.0;
             
             window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('resize', syncAutoDeviceMode);
             resizeCanvas();
 
             requestAnimationFrame(renderLoop);
             runSimulation();
+        }
+
+        function syncAutoDeviceMode() {
+            const detected = detectDeviceType();
+            if (detected !== currentDevice) {
+                setDeviceMode(detected);
+            }
         }
 
         function resizeCanvas() {
@@ -726,7 +944,7 @@
 
         function selectTool(tool) {
             activeTool = tool;
-            document.querySelectorAll('.tool-btn').forEach(btn => {
+            document.querySelectorAll('.tool-btn, .dock-tool').forEach(btn => {
                 btn.classList.remove('active');
             });
             const activeBtn = document.getElementById(`btn-${tool}`);
@@ -734,11 +952,261 @@
                 activeBtn.classList.add('active');
                 activeBtn.style.color = '';
             }
+            const dockBtn = document.getElementById(`dock-${tool}`);
+            if (dockBtn) dockBtn.classList.add('active');
 
             const st = document.getElementById('status-tool');
             if (st) st.textContent = tool.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-            if (window.innerWidth < 768 && isPanelOpen) toggleMenu();
+            if (currentDevice === 'MOBILE' && isPanelOpen) toggleMenu();
+        }
+
+        function getBlockLabel(type) {
+            return BLOCK_LABELS[type] || type.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        function showHoverLabel(text, x, y) {
+            const label = document.getElementById('hover-label');
+            if (!label || !text) return;
+
+            label.textContent = text;
+            label.classList.add('visible');
+
+            const width = label.offsetWidth || 80;
+            const height = label.offsetHeight || 24;
+            const clampedX = Math.max(width / 2 + 8, Math.min(window.innerWidth - width / 2 - 8, x));
+            const clampedY = Math.max(height + 18, Math.min(window.innerHeight - 10, y));
+            label.style.left = `${clampedX}px`;
+            label.style.top = `${clampedY}px`;
+        }
+
+        function hideHoverLabel() {
+            const label = document.getElementById('hover-label');
+            if (label) label.classList.remove('visible');
+        }
+
+        function setupHoverLabels() {
+            document.querySelectorAll('.tool-btn, .dock-tool, .dock-action, .xfer-btn').forEach(btn => {
+                btn.addEventListener('pointerenter', () => {
+                    const rect = btn.getBoundingClientRect();
+                    const tool = btn.id ? btn.id.replace(/^btn-|^dock-/, '') : '';
+                    const text = getBlockLabel(tool) || btn.getAttribute('aria-label') || btn.getAttribute('title');
+                    showHoverLabel(text, rect.left + rect.width / 2, rect.top);
+                });
+                btn.addEventListener('pointermove', () => {
+                    const rect = btn.getBoundingClientRect();
+                    const tool = btn.id ? btn.id.replace(/^btn-|^dock-/, '') : '';
+                    const text = getBlockLabel(tool) || btn.getAttribute('aria-label') || btn.getAttribute('title');
+                    showHoverLabel(text, rect.left + rect.width / 2, rect.top);
+                });
+                btn.addEventListener('pointerleave', hideHoverLabel);
+            });
+        }
+
+        function blockIconSvg(tool) {
+            const common = 'shape-rendering="crispEdges" class="mc-icon" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"';
+            const base = (fill, stroke = '#111118') => `<rect x="3" y="3" width="26" height="26" rx="1" fill="${fill}" stroke="${stroke}" stroke-width="2"/><path d="M4 4h24v5H4z" fill="rgba(255,255,255,0.16)"/><path d="M4 23h24v5H4z" fill="rgba(0,0,0,0.24)"/>`;
+            const icons = {
+                MOVE: `<svg ${common}><path d="M16 2l5 5h-3v7h7v-3l5 5-5 5v-3h-7v7h3l-5 5-5-5h3v-7H7v3l-5-5 5-5v3h7V7h-3z" fill="#b8b8c6"/><path d="M14 14h4v4h-4z" fill="#28283a"/></svg>`,
+                BATTERY: `<svg ${common}>${base('#2f7d4f')}<rect x="8" y="8" width="16" height="16" fill="#42a86a"/><rect x="14" y="7" width="4" height="18" fill="#d9ffe9"/><rect x="7" y="14" width="18" height="4" fill="#d9ffe9"/></svg>`,
+                LEVER: `<svg ${common}>${base('#706152')}<rect x="9" y="20" width="14" height="5" fill="#3b332c"/><rect x="14" y="8" width="4" height="15" transform="rotate(28 16 16)" fill="#b9b1a5"/><rect x="18" y="7" width="5" height="5" fill="#d8d0c0"/></svg>`,
+                DUST: `<svg ${common}>${base('#5c342f')}<path d="M8 16h16M16 8v16" stroke="#8f1111" stroke-width="5" stroke-linecap="square"/><rect x="13" y="13" width="6" height="6" fill="#e33838"/></svg>`,
+                REPEATER: `<svg ${common}>${base('#9a9188')}<path d="M8 21h16" stroke="#7d0d0d" stroke-width="3"/><path d="M16 8l7 10H9z" fill="#c32626"/><rect x="14" y="18" width="4" height="5" fill="#6b1919"/></svg>`,
+                OBSERVER: `<svg ${common}>${base('#6a7078')}<rect x="8" y="8" width="5" height="5" fill="#2e3338"/><rect x="19" y="8" width="5" height="5" fill="#2e3338"/><rect x="13" y="18" width="6" height="6" fill="#8c1010"/><rect x="15" y="20" width="2" height="2" fill="#ff4a4a"/></svg>`,
+                PISTON: `<svg ${common}>${base('#4e4f4d')}<rect x="6" y="5" width="20" height="8" fill="#9a6a35"/><rect x="9" y="13" width="14" height="10" fill="#6b6d68"/><rect x="12" y="16" width="8" height="5" fill="#393a38"/></svg>`,
+                STICKY_PISTON: `<svg ${common}>${base('#4e4f4d')}<rect x="6" y="5" width="20" height="8" fill="#7fb442"/><rect x="9" y="13" width="14" height="10" fill="#6b6d68"/><rect x="12" y="16" width="8" height="5" fill="#393a38"/></svg>`,
+                LAMP: `<svg ${common}>${base('#775326')}<rect x="8" y="8" width="16" height="16" fill="#b97824"/><path d="M8 8l16 16M24 8L8 24" stroke="#ffd36b" stroke-width="3"/><rect x="13" y="13" width="6" height="6" fill="#fff0a8"/></svg>`,
+                ERASE: `<svg ${common}><rect x="5" y="7" width="22" height="18" fill="#242437" stroke="#3a3a52" stroke-width="2"/><path d="M9 10l14 12M23 10L9 22" stroke="#9a9aae" stroke-width="3"/></svg>`
+            };
+            return icons[tool] || icons.MOVE;
+        }
+
+        function hydrateMinecraftIcons() {
+            const tools = ['MOVE','BATTERY','LEVER','DUST','REPEATER','OBSERVER','PISTON','STICKY_PISTON','LAMP','ERASE'];
+            tools.forEach(tool => {
+                const template = document.createElement('template');
+                template.innerHTML = blockIconSvg(tool).trim();
+                const sideBtn = document.getElementById(`btn-${tool}`);
+                if (sideBtn) {
+                    const oldIcon = sideBtn.querySelector('svg');
+                    if (oldIcon) oldIcon.replaceWith(template.content.firstElementChild.cloneNode(true));
+                }
+                const dockBtn = document.getElementById(`dock-${tool}`);
+                if (dockBtn) dockBtn.innerHTML = blockIconSvg(tool);
+            });
+        }
+
+        function setupDockReveal() {
+            const dock = document.getElementById('tool-dock');
+            if (!dock) return;
+
+            let closeTimer = null;
+            const openDock = () => {
+                if (currentDevice !== 'PC') return;
+                clearTimeout(closeTimer);
+                dock.classList.add('dock-open');
+            };
+            const scheduleClose = () => {
+                clearTimeout(closeTimer);
+                closeTimer = setTimeout(() => dock.classList.remove('dock-open'), 650);
+            };
+
+            window.addEventListener('pointermove', (event) => {
+                if (currentDevice !== 'PC') return;
+                const fromBottom = window.innerHeight - event.clientY;
+                if (fromBottom <= 110) openDock();
+                else if (!dock.matches(':hover')) scheduleClose();
+            });
+
+            dock.addEventListener('pointerenter', openDock);
+            dock.addEventListener('pointerleave', scheduleClose);
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') dock.classList.remove('dock-open');
+            });
+        }
+
+        function crispRect(x, y, w, h, fill) {
+            ctx.fillStyle = fill;
+            ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+        }
+
+        function drawBlockBase(px, py, cellSize, fill, top, bottom, border = '#101016') {
+            const inset = Math.max(2, cellSize * 0.07);
+            const x = px + inset;
+            const y = py + inset;
+            const s = cellSize - inset * 2;
+            crispRect(x, y, s, s, border);
+            crispRect(x + 2 * scale, y + 2 * scale, s - 4 * scale, s - 4 * scale, fill);
+            crispRect(x + 2 * scale, y + 2 * scale, s - 4 * scale, Math.max(2, s * 0.18), top);
+            crispRect(x + 2 * scale, y + s - Math.max(2, s * 0.18) - 2 * scale, s - 4 * scale, Math.max(2, s * 0.18), bottom);
+            return { x, y, s };
+        }
+
+        function drawMinecraftBlock(cell, px, py, wx, wy, cellSize) {
+            const powered = cell.power > 0 || cell.active || cell.pulseTimer > 0;
+            let block;
+
+            if (cell.type === 'BATTERY') {
+                block = drawBlockBase(px, py, cellSize, '#2f7d4f', '#55b878', '#1e4e34');
+                crispRect(block.x + block.s * 0.42, block.y + block.s * 0.18, block.s * 0.16, block.s * 0.64, '#d9ffe9');
+                crispRect(block.x + block.s * 0.18, block.y + block.s * 0.42, block.s * 0.64, block.s * 0.16, '#d9ffe9');
+                crispRect(block.x + block.s * 0.46, block.y + block.s * 0.22, block.s * 0.08, block.s * 0.56, '#7dffc0');
+                return;
+            }
+
+            if (cell.type === 'LEVER') {
+                block = drawBlockBase(px, py, cellSize, '#766553', '#9c8a73', '#463a30');
+                crispRect(block.x + block.s * 0.22, block.y + block.s * 0.68, block.s * 0.56, block.s * 0.16, '#352c26');
+                ctx.save();
+                ctx.translate(px + cellSize / 2, py + cellSize / 2);
+                ctx.rotate(cell.active ? Math.PI / 4 : -Math.PI / 4);
+                crispRect(-cellSize * 0.055, -cellSize * 0.32, cellSize * 0.11, cellSize * 0.5, '#cfc6b4');
+                crispRect(-cellSize * 0.095, -cellSize * 0.38, cellSize * 0.19, cellSize * 0.14, cell.active ? '#63d86f' : '#d9d0bd');
+                ctx.restore();
+                return;
+            }
+
+            if (cell.type === 'LAMP') {
+                block = drawBlockBase(px, py, cellSize, powered ? '#c68528' : '#5a3f22', powered ? '#ffd56f' : '#7b5a30', powered ? '#89561d' : '#2f261d');
+                ctx.strokeStyle = powered ? '#fff0a8' : '#2b2119';
+                ctx.lineWidth = Math.max(2, 2.5 * scale);
+                ctx.beginPath();
+                ctx.moveTo(block.x + block.s * 0.22, block.y + block.s * 0.22);
+                ctx.lineTo(block.x + block.s * 0.78, block.y + block.s * 0.78);
+                ctx.moveTo(block.x + block.s * 0.78, block.y + block.s * 0.22);
+                ctx.lineTo(block.x + block.s * 0.22, block.y + block.s * 0.78);
+                ctx.stroke();
+                if (powered) {
+                    ctx.shadowBlur = 16 * scale;
+                    ctx.shadowColor = '#fbbf24';
+                    crispRect(block.x + block.s * 0.38, block.y + block.s * 0.38, block.s * 0.24, block.s * 0.24, '#fff3ad');
+                    ctx.shadowBlur = 0;
+                }
+                return;
+            }
+
+            if (cell.type === 'DUST') {
+                const red = powered ? Math.floor(135 + (cell.power / 15) * 120) : 82;
+                const dust = `rgb(${red}, 12, 12)`;
+                ctx.lineCap = 'square';
+                ctx.lineWidth = Math.max(4, cellSize * 0.16);
+                ctx.strokeStyle = dust;
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    const nCell = grid.get(`${wx + DX[i]},${wy + DY[i]}`);
+                    let connects = false;
+                    if (nCell) {
+                        if (['DUST', 'BATTERY', 'LEVER', 'LAMP', 'OBSERVER'].includes(nCell.type)) connects = true;
+                        else if ((nCell.type === 'PISTON' || nCell.type === 'STICKY_PISTON') && nCell.dir !== (i + 2) % 4) connects = true;
+                        else if (nCell.type === 'REPEATER' && nCell.dir % 2 === i % 2) connects = true;
+                    }
+                    if (connects) {
+                        ctx.moveTo(px + cellSize / 2, py + cellSize / 2);
+                        ctx.lineTo(px + cellSize / 2 + DX[i] * cellSize * 0.42, py + cellSize / 2 + DY[i] * cellSize * 0.42);
+                    }
+                }
+                ctx.stroke();
+                crispRect(px + cellSize * 0.39, py + cellSize * 0.39, cellSize * 0.22, cellSize * 0.22, powered ? '#ff4a4a' : '#6f1111');
+                return;
+            }
+
+            if (cell.type === 'REPEATER') {
+                block = drawBlockBase(px, py, cellSize, '#a9a096', '#cec6ba', '#6d6258');
+                ctx.save();
+                ctx.translate(px + cellSize / 2, py + cellSize / 2);
+                ctx.rotate(cell.dir * Math.PI / 2);
+                crispRect(-cellSize * 0.3, cellSize * 0.23, cellSize * 0.6, cellSize * 0.08, '#7d0d0d');
+                ctx.fillStyle = powered ? '#ef4444' : '#8b1f1f';
+                ctx.beginPath();
+                ctx.moveTo(0, -cellSize * 0.3);
+                ctx.lineTo(cellSize * 0.23, cellSize * 0.12);
+                ctx.lineTo(-cellSize * 0.23, cellSize * 0.12);
+                ctx.closePath();
+                ctx.fill();
+                crispRect(-cellSize * 0.05, cellSize * 0.1, cellSize * 0.1, cellSize * 0.16, '#6b1919');
+                ctx.restore();
+                return;
+            }
+
+            if (cell.type === 'OBSERVER') {
+                block = drawBlockBase(px, py, cellSize, '#6a7078', '#8c939a', '#3e444b');
+                ctx.save();
+                ctx.translate(px + cellSize / 2, py + cellSize / 2);
+                ctx.rotate(cell.dir * Math.PI / 2);
+                crispRect(-cellSize * 0.25, -cellSize * 0.3, cellSize * 0.16, cellSize * 0.16, '#2e3338');
+                crispRect(cellSize * 0.09, -cellSize * 0.3, cellSize * 0.16, cellSize * 0.16, '#2e3338');
+                crispRect(-cellSize * 0.1, cellSize * 0.22, cellSize * 0.2, cellSize * 0.16, powered ? '#ff4a4a' : '#7a1111');
+                ctx.restore();
+                return;
+            }
+
+            if (cell.type === 'PISTON' || cell.type === 'STICKY_PISTON') {
+                block = drawBlockBase(px, py, cellSize, '#555752', '#73766f', '#333531');
+                ctx.save();
+                ctx.translate(px + cellSize / 2, py + cellSize / 2);
+                ctx.rotate(cell.dir * Math.PI / 2);
+                if (cell.active) {
+                    crispRect(-cellSize * 0.08, -cellSize * 0.43, cellSize * 0.16, cellSize * 0.42, '#9b9d96');
+                    crispRect(-cellSize * 0.14, -cellSize * 0.44, cellSize * 0.28, cellSize * 0.08, '#c2c3bc');
+                } else {
+                    crispRect(-cellSize * 0.34, -cellSize * 0.38, cellSize * 0.68, cellSize * 0.2, cell.type === 'STICKY_PISTON' ? '#7fb442' : '#9a6a35');
+                    crispRect(-cellSize * 0.24, -cellSize * 0.33, cellSize * 0.48, cellSize * 0.08, cell.type === 'STICKY_PISTON' ? '#a7db64' : '#c18a4b');
+                }
+                ctx.restore();
+                return;
+            }
+
+            if (cell.type === 'PISTON_HEAD') {
+                const parentCell = grid.get(cell.parent);
+                const isSticky = parentCell && parentCell.type === 'STICKY_PISTON';
+                ctx.save();
+                ctx.translate(px + cellSize / 2, py + cellSize / 2);
+                ctx.rotate(cell.dir * Math.PI / 2);
+                crispRect(-cellSize * 0.36, -cellSize * 0.42, cellSize * 0.72, cellSize * 0.22, isSticky ? '#7fb442' : '#9a6a35');
+                crispRect(-cellSize * 0.24, -cellSize * 0.2, cellSize * 0.48, cellSize * 0.18, '#777971');
+                crispRect(-cellSize * 0.08, -cellSize * 0.02, cellSize * 0.16, cellSize * 0.34, '#9b9d96');
+                ctx.restore();
+            }
         }
 
         function showModal(id) { const el = document.getElementById(id); el.style.display = 'flex'; }
@@ -789,6 +1257,20 @@
             return { wx, wy, key: `${wx},${wy}` };
         }
 
+        function updateCanvasHoverLabel(e) {
+            if (isPanelOpen || activePointers.size > 0) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const { key } = getGridPos(e.clientX - rect.left, e.clientY - rect.top);
+            const cell = grid.get(key);
+
+            if (cell) {
+                showHoverLabel(getBlockLabel(cell.type), e.clientX, e.clientY);
+            } else {
+                hideHoverLabel();
+            }
+        }
+
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault(); 
             if (isPanelOpen) return;
@@ -829,6 +1311,7 @@
         });
 
         canvas.addEventListener('pointermove', (e) => {
+            updateCanvasHoverLabel(e);
             if (!activePointers.has(e.pointerId)) return;
             activePointers.set(e.pointerId, e);
 
@@ -866,6 +1349,8 @@
                 }
             }
         });
+
+        canvas.addEventListener('pointerleave', hideHoverLabel);
 
         const handlePointerUp = (e) => {
             if (!activePointers.has(e.pointerId)) return;
@@ -1155,6 +1640,8 @@
                 if (px < -cellSize || py < -cellSize || px > (canvas.width / (window.devicePixelRatio || 1)) || py > (canvas.height / (window.devicePixelRatio || 1))) return;
 
                 const pad = cellSize * 0.15;
+                drawMinecraftBlock(cell, px, py, wx, wy, cellSize);
+                return;
 
                 if (cell.type === 'BATTERY') {
                     // Constant Generator Core Block
@@ -1379,6 +1866,11 @@
 
             requestAnimationFrame(renderLoop);
         }
+
+        hydrateMinecraftIcons();
+        setupDockReveal();
+        setupHoverLabels();
+        initApp();
 
     </script>
 </body>

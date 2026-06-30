@@ -368,6 +368,22 @@
         }
         #menu-btn:hover { color: var(--text-1); border-color: var(--border-hi); background: var(--surface-3); }
 
+        /* ── Help / tutorial button (single instance, repositioned per device) ── */
+        #help-btn {
+            position: fixed; top: 14px; right: 60px;
+            width: 38px; height: 38px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 50;
+            font-family: var(--font-d); font-weight: 700; font-size: 13px;
+            transition: all 0.12s;
+        }
+        #help-btn:hover { color: var(--accent); border-color: var(--border-hi); background: var(--surface-3); }
+        body[data-device="PC"] #help-btn { right: 14px; }
+
         /* ── Status bar ─────────────────────── */
         #status-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -524,6 +540,35 @@
         }
         .btn-warn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+        /* ── Tutorial modal (extends .modal-card) ─ */
+        .tut-step-lbl {
+            font-family: var(--font-m);
+            font-size: 9px; letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+        .tut-icon-box {
+            display: flex; align-items: center; justify-content: center;
+            width: 48px; height: 48px;
+            background: var(--surface-3);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            color: var(--accent);
+            margin-bottom: 14px;
+        }
+        .tut-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 4px;
+        }
+        .tut-dots { display: flex; gap: 5px; }
+        .tut-dot {
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--border-hi);
+            transition: all 0.15s;
+        }
+        .tut-dot.active { background: var(--accent); width: 14px; border-radius: 3px; }
+
         /* scrollbar */
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -586,6 +631,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 6l-6 6 6 6"/>
         </svg>
     </a>
+
+    <button id="help-btn" onclick="openTutorial()" aria-label="How to play" title="How to play">?</button>
 
     <button id="menu-btn" onclick="toggleMenu()" aria-label="Open tools">
         <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -814,6 +861,22 @@
         </div>
     </div>
 
+    <div id="tutorial-modal" class="modal-overlay" style="display:none">
+        <div class="modal-card">
+            <div class="tut-step-lbl" id="tut-step-lbl">Step 1 of 7</div>
+            <div class="tut-icon-box" id="tut-icon-box"></div>
+            <div class="m-title" id="tut-title" style="font-size:16px"></div>
+            <div class="m-desc" id="tut-body" style="font-size:11px; line-height:1.7; letter-spacing:0.01em"></div>
+            <div class="tut-footer">
+                <div class="tut-dots" id="tut-dots"></div>
+                <div class="m-actions" style="margin:0">
+                    <button class="btn-ghost" onclick="skipTutorial()">Skip</button>
+                    <button class="btn-cta" id="tut-next-btn" onclick="tutorialNext()">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <canvas id="simCanvas"></canvas>
 
     <script>
@@ -898,6 +961,7 @@
 
             requestAnimationFrame(renderLoop);
             runSimulation();
+            maybeAutoStartTutorial();
         }
 
         function syncAutoDeviceMode() {
@@ -1248,6 +1312,115 @@
             } catch (err) {
                 document.getElementById('import-error').style.display = 'block';
             }
+        }
+
+        // ── Tutorial ─────────────────────────────
+        const TUTORIAL_STORAGE_KEY = 'redstoneLab_tutorialSeen';
+
+        function tutIcon(svgInner) {
+            return `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${svgInner}</svg>`;
+        }
+
+        function getTutorialSteps() {
+            const mobile = currentDevice === 'MOBILE';
+            const navHint = mobile
+                ? 'Drag with one finger to pan, pinch with two fingers to zoom.'
+                : 'Drag with the mouse to pan, and scroll the wheel to zoom in or out.';
+            const placeHint = mobile
+                ? 'Open the tools panel and pick a block, then tap any grid cell to place it.'
+                : 'Hover the bottom edge of the screen to reveal the dock, pick a block, then click any grid cell to place it.';
+            const rotateAction = mobile ? 'tap' : 'click';
+            const menuHint = mobile
+                ? 'The tools panel also has save/load and clear grid options.'
+                : 'The dock also has clear grid, export and import actions.';
+
+            return [
+                {
+                    title: 'Welcome to Redstone Lab',
+                    body: 'A free-form circuit sandbox inspired by Minecraft redstone. This quick walkthrough covers the basics — skip any time.',
+                    icon: tutIcon('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h2.5M13.5 12H16M12 8v2.5M12 13.5V16"/>')
+                },
+                {
+                    title: 'Move around the grid',
+                    body: navHint,
+                    icon: tutIcon('<path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4M5 12h14"/>')
+                },
+                {
+                    title: 'Place your first blocks',
+                    body: placeHint + ' Start with a Generator for constant power, or a Switch to toggle power on and off.',
+                    icon: tutIcon('<rect x="5" y="6" width="12" height="12" rx="2"/><path d="M17 10h2v4h-2"/>')
+                },
+                {
+                    title: 'Wire it up',
+                    body: 'Conductor wire carries the signal between blocks. Connect a power source to a Lamp through a length of wire to see current flow — it lights up red when powered.',
+                    icon: tutIcon('<circle cx="12" cy="12" r="2"/><path d="M4 12h5M15 12h5M12 4v5M12 15v5"/>')
+                },
+                {
+                    title: 'Logic blocks',
+                    body: 'Repeaters boost a signal one step further. Observers pulse when the block in front of them changes. Both can be placed and rotated just like pistons — see the next step.',
+                    icon: tutIcon('<rect x="4" y="9" width="4" height="6" rx="1"/><rect x="10" y="9" width="4" height="6" rx="1"/><rect x="16" y="9" width="4" height="6" rx="1"/><path d="M8 12h2M14 12h2"/>')
+                },
+                {
+                    title: 'Pistons & rotation',
+                    body: `Pistons and Sticky Pistons push (and pull, for sticky) the block in front of them when powered. They place facing one direction by default — switch to Pan & Move, then ${rotateAction} a placed Piston to rotate it to face the way you need. The same trick rotates Repeaters and Observers too.`,
+                    icon: tutIcon('<rect x="4" y="6" width="6" height="12" rx="1"/><rect x="14" y="8" width="6" height="8" rx="1"/><path d="M10 12h4"/>')
+                },
+                {
+                    title: 'Save & load',
+                    body: menuHint + ' Export turns your circuit into a string you can copy and store; Import brings it back.',
+                    icon: tutIcon('<path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>')
+                }
+            ];
+        }
+
+        let tutorialSteps = [];
+        let tutorialIndex = 0;
+
+        function maybeAutoStartTutorial() {
+            let seen = false;
+            try { seen = localStorage.getItem(TUTORIAL_STORAGE_KEY) === '1'; } catch (e) { /* storage unavailable */ }
+
+            if (!seen) openTutorial();
+        }
+
+        function openTutorial() {
+            tutorialSteps = getTutorialSteps();
+            tutorialIndex = 0;
+            renderTutorialStep();
+            showModal('tutorial-modal');
+        }
+
+        function renderTutorialStep() {
+            const step = tutorialSteps[tutorialIndex];
+            const total = tutorialSteps.length;
+
+            document.getElementById('tut-step-lbl').textContent = `Step ${tutorialIndex + 1} of ${total}`;
+            document.getElementById('tut-icon-box').innerHTML = step.icon;
+            document.getElementById('tut-title').textContent = step.title;
+            document.getElementById('tut-body').textContent = step.body;
+
+            const dotsEl = document.getElementById('tut-dots');
+            dotsEl.innerHTML = '';
+            for (let i = 0; i < total; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'tut-dot' + (i === tutorialIndex ? ' active' : '');
+                dotsEl.appendChild(dot);
+            }
+
+            document.getElementById('tut-next-btn').textContent = (tutorialIndex === total - 1) ? 'Start Building' : 'Next';
+        }
+
+        function tutorialNext() {
+            if (tutorialIndex >= tutorialSteps.length - 1) { finishTutorial(); return; }
+            tutorialIndex++;
+            renderTutorialStep();
+        }
+
+        function skipTutorial() { finishTutorial(); }
+
+        function finishTutorial() {
+            closeModal('tutorial-modal');
+            try { localStorage.setItem(TUTORIAL_STORAGE_KEY, '1'); } catch (e) { /* storage unavailable */ }
         }
 
         function getGridPos(canvasX, canvasY) {
